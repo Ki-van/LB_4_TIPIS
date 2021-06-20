@@ -29,6 +29,13 @@ namespace LB_4_TIPIS
             Console.WriteLine("Полезная информация: " + entropy.UsefulInformation);
             Console.WriteLine("Скорость: " + entropy.Speed);
 
+
+            Console.WriteLine("1011");
+            
+
+            string code2 = CyclicСode.Encode("1011");
+            Console.WriteLine(code2);
+
         }
     }
 }

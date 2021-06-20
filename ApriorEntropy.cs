@@ -40,7 +40,7 @@ namespace LB_2_TIPIS
 
         private void CalcSpeed()
         {
-            Speed = UsefulInformation / 0.1;
+            Speed = UsefulInformation / 0.0012;
         }
 
         private void CalcUsefulInformation()
@@ -61,6 +61,8 @@ namespace LB_2_TIPIS
                 Hvui = 0;
                 for (int j = 0; j < channelMatrix.GetUpperBound(1) + 1; j++)
                 {
+                    if (channelMatrix[i, j] == 0)
+                        continue;
                     Hvui += -channelMatrix[i, j] * Math.Log2(channelMatrix[i, j]);
                 }
                 H += Symbols[i].probability * Hvui;
@@ -112,7 +114,7 @@ namespace LB_2_TIPIS
             return true;
         }
 
-        private  void GetChannelMatrix(string[] symbols)
+        /*private  void GetChannelMatrix(string[] symbols)
         {
             if (symbols.Length < 1)
             {
@@ -131,7 +133,7 @@ namespace LB_2_TIPIS
                 for (int j = 0; j < maxV; j++)
                 {
                     double pvu = 1;
-                    //channelMatrix[i, j] = 1;
+                    
                     toCode = ToBinaryStr(j + 1, Symbols[i].antiJammingCode.Length);
 
                     for (int k = 0; k < fromCode.Length; k++)
@@ -155,6 +157,54 @@ namespace LB_2_TIPIS
                     
                 }
             }
+        }*/
+        private void GetChannelMatrix(string[] symbols)
+        {
+            if (symbols.Length < 1)
+            {
+                channelMatrix = null;
+                return;
+            }
+            int minCodeLenght = (int)Math.Ceiling(Math.Log2(symbols.Length));
+            this.channelMatrix = new double[symbols.Length, (int)Math.Pow(2, minCodeLenght)];
+
+            string fromCode, toCode;
+            for (int i = 0; i < channelMatrix.GetUpperBound(0) + 1; i++)
+            {
+                fromCode = Symbols[i].code;
+                for (int j = 0; j < channelMatrix.GetUpperBound(1) + 1; j++)
+                {
+                    double pvu = 1;
+                    //channelMatrix[i, j] = 1;
+                    toCode = ToBinaryStr(j + 1, minCodeLenght);
+
+                    for (int k = 0; k < fromCode.Length; k++)
+                    {
+                        if (fromCode[k] == '0')
+                        {
+                            if (toCode[k] == '0')
+                                pvu *= this.ZeroToZero;
+                            else
+                                pvu *= this.ZeroToOne;
+                        }
+                        else
+                        {
+                            if (toCode[k] == '0')
+                                pvu *= this.OneToZero;
+                            else
+                                pvu *= this.OneToOne;
+                        }
+                    }
+
+                    if (HemmingDistahce(fromCode, toCode) <= 1)
+                    {
+                        channelMatrix[i, i] += pvu;
+                    }
+                    else
+                        channelMatrix[i, j] += pvu;
+
+                }
+            }
         }
 
         private string ToBinaryStr(int a, int strLength)
@@ -169,6 +219,20 @@ namespace LB_2_TIPIS
                 str = str.Substring(str.Length - strLength, strLength);
 
             return str;
+        }
+
+        private int HemmingDistahce(string code1, string code2)
+        {
+            if (code1.Length != code2.Length)
+                return -1;
+
+            int d = 0;
+            for (int i = 0; i < code1.Length; i++)
+            {
+                d += code1[i] != code2[i] ? 1 : 0;
+            }
+
+            return d;
         }
     }
 }
